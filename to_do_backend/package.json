@@ -1,0 +1,33 @@
+{
+  "name": "to_do_backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simple To-Do backend (Node.js + Express + SQLite via better-sqlite3)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon --quiet --watch src --ext js,json --exec node src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "express",
+    "sqlite",
+    "todo",
+    "rest"
+  ],
+  "license": "MIT"
+}
