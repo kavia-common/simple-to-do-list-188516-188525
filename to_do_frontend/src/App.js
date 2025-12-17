@@ -1,49 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import Header from "./components/Header";
+import TodoForm from "./components/TodoForm";
+import TodoList from "./components/TodoList";
+import useTodos from "./hooks/useTodos";
 
 // PUBLIC_INTERFACE
-function App() {
-  const [theme, setTheme] = useState('light');
+export default function App() {
+  /** Root application entrypoint rendering header, form, list, and error banner. */
+  const {
+    todos,
+    loading,
+    error,
+    clearError,
+    addTodo,
+    updateTodo,
+    toggleTodo,
+    deleteTodo,
+  } = useTodos();
 
-  // Effect to apply theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  const total = todos.length;
+  const completed = todos.filter((t) => t.completed).length;
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <Header total={total} completed={completed} />
+      <main className="container main">
+        {error ? (
+          <div
+            className="error-banner"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div className="error-message">{error}</div>
+            <button className="btn btn-ghost btn-sm" onClick={clearError} aria-label="Dismiss error">
+              Dismiss
+            </button>
+          </div>
+        ) : null}
+
+        <TodoForm onAdd={addTodo} />
+
+        {loading ? (
+          <div className="loading" role="status" aria-live="polite">
+            Loading tasks...
+          </div>
+        ) : (
+          <TodoList
+            todos={todos}
+            onToggle={toggleTodo}
+            onDelete={deleteTodo}
+            onUpdate={updateTodo}
+          />
+        )}
+      </main>
     </div>
   );
 }
-
-export default App;

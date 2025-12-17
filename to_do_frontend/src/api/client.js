@@ -1,0 +1,124 @@
+//
+// API client for interacting with the backend To-Do REST API.
+// Uses REACT_APP_API_BASE for the base URL; falls back to same-origin if unset.
+//
+
+const API_BASE = (typeof process !== "undefined" && process.env && process.env.REACT_APP_API_BASE) ? process.env.REACT_APP_API_BASE : "";
+
+/**
+ * Perform a JSON fetch request.
+ * @param {string} path - API path starting with '/'
+ * @param {object} options - fetch options including method, body, headers
+ * @returns {Promise<any>} - parsed JSON response or null
+ */
+async function jsonRequest(path, options = {}) {
+  const url = `${API_BASE}${path}`;
+  const opts = {
+    method: options.method || "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  };
+
+  let res;
+  try {
+    res = await fetch(url, opts);
+  } catch (e) {
+    // Network or CORS error
+    const err = new Error("Network error connecting to API");
+    err.cause = e;
+    throw err;
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+  let payload = null;
+  if (contentType.includes("application/json")) {
+    try {
+      payload = await res.json();
+    } catch {
+      payload = null;
+    }
+  } else {
+    // In case backend returns no content or text
+    try {
+      payload = await res.text();
+    } catch {
+      payload = null;
+    }
+  }
+
+  if (!res.ok) {
+    const message =
+      (payload && payload.message) ||
+      (typeof payload === "string" ? payload : "") ||
+      res.statusText ||
+      "Request failed";
+    const error = new Error(message);
+    error.status = res.status;
+    error.data = payload;
+    throw error;
+  }
+
+  return payload;
+}
+
+// PUBLIC_INTERFACE
+export async function getTodos() {
+  /** Fetch all todos. Returns an array of todos: [{ id, title, completed, createdAt? }] */
+  return jsonRequest("/todos", { method: "GET" });
+}
+
+// PUBLIC_INTERFACE
+export async function createTodo(title) {
+  /** Create a todo by title. Returns the created todo object. */
+  return jsonRequest("/todos", { method: "POST", body: { title } });
+}
+
+// PUBLIC_INTERFACE
+export async function updateTodo(id, updates) {
+  /** Update a todo by id with provided partial fields. Returns updated todo. */
+  return jsonRequest(`/todos/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: updates,
+  });
+}
+
+// PUBLIC_INTERFACE
+export async function deleteTodo(id) {
+  /** Delete a todo by id. Returns nothing on success. */
+  return jsonRequest(`/todos/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+// PUBLIC_INTERFACE
+export async function toggleTodo(id, completed) {
+  /** Toggle the completed flag for a todo by id. Returns updated todo. */
+  // Many APIs support PATCH with partial fields; prefer that if supported by backend
+  try {
+    return await jsonRequest(`/todos/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: { completed },
+    });
+  } catch (err) {
+    // Fallback to PUT-based update if PATCH not supported (405/404)
+    if (err && (err.status === 404 || err.status === 405)) {
+      return jsonRequest(`/todos/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: { completed },
+      });
+    }
+    throw err;
+  }
+}
+
+export default {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  toggleTodo,
+};
