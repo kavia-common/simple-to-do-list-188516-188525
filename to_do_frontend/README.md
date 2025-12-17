@@ -80,3 +80,22 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Quickstart (Full App)
+
+- Start backend (in another terminal):
+  - cd simple-to-do-list-188516-188525/to_do_backend
+  - npm install
+  - npm run dev
+  - Health check: http://localhost:4000/healthz
+
+- Start frontend:
+  - cd simple-to-do-list-188516-188525/to_do_frontend
+  - npm install
+  - npm start
+  - Open http://localhost:3000
+
+Environment:
+- The frontend uses REACT_APP_API_BASE to talk to the backend API.
+- We provide .env.local with REACT_APP_API_BASE=http://localhost:4000/api (adjust if needed).
+- CORS in the backend is configured for http://localhost:3000 by default.

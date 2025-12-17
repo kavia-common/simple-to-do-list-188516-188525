@@ -94,3 +94,28 @@ curl -s -X DELETE http://localhost:4000/api/todos/1 -i
 
 - Data is stored at `to_do_backend/data/todos.db`. The file is created on first run.
 - Schema is initialized automatically; no manual migration needed.
+
+## Quickstart (Full App Integration)
+
+1) Backend
+- cd simple-to-do-list-188516-188525/to_do_backend
+- npm install
+- npm run dev
+- Verify health at http://localhost:4000/healthz
+
+2) Frontend
+- cd simple-to-do-list-188516-188525/to_do_frontend
+- npm install
+- npm start
+- Open http://localhost:3000
+
+Notes:
+- Frontend API base: REACT_APP_API_BASE=http://localhost:4000/api (set in to_do_frontend/.env.local)
+- Backend environment variables (to_do_backend/.env):
+  - PORT=4000
+  - FRONTEND_URL=http://localhost:3000
+  - TRUST_PROXY=true
+  - LOG_LEVEL=info
+  - HEALTHCHECK_PATH=/healthz
+  - DB_PATH=./data/todos.db
+- CORS is configured for the FRONTEND_URL origin.
