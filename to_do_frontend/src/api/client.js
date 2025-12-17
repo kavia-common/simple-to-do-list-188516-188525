@@ -1,18 +1,55 @@
-//
+// 
 // API client for interacting with the backend To-Do REST API.
-// Uses REACT_APP_API_BASE for the base URL; falls back to same-origin if unset.
+// Uses REACT_APP_API_BASE for the base URL; falls back to REACT_APP_BACKEND_URL + "/api" if unset.
+// Avoids hardcoding; values are provided through .env.* files.
 //
+/* eslint-disable no-console */
 
-const API_BASE = (typeof process !== "undefined" && process.env && process.env.REACT_APP_API_BASE) ? process.env.REACT_APP_API_BASE : "";
+// Determine the API base from environment variables at build time.
+// Prefer REACT_APP_API_BASE; fallback to REACT_APP_BACKEND_URL + "/api".
+function resolveApiBase() {
+  let base = "";
+  if (typeof process !== "undefined" && process.env) {
+    const apiBase = process.env.REACT_APP_API_BASE || "";
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
+    if (apiBase) {
+      base = apiBase;
+    } else if (backendUrl) {
+      base = `${backendUrl.replace(/\/+$/, "")}/api`;
+    } else {
+      base = "";
+    }
+  }
+  // Normalize: remove trailing slash
+  return (base || "").replace(/\/+$/, "");
+}
+
+const API_BASE = resolveApiBase();
+
+// Join a base URL and a path ensuring exactly one slash between them.
+function joinUrl(base, path) {
+  const b = (base || "").replace(/\/+$/, "");
+  const p = (path || "").startsWith("/") ? path : `/${path || ""}`;
+  return `${b}${p}`;
+}
 
 /**
  * Perform a JSON fetch request.
- * @param {string} path - API path starting with '/'
+ * @param {string} path - API path starting with '/' (e.g., '/todos')
  * @param {object} options - fetch options including method, body, headers
  * @returns {Promise<any>} - parsed JSON response or null
  */
 async function jsonRequest(path, options = {}) {
-  const url = `${API_BASE}${path}`;
+  if (!API_BASE && typeof window !== "undefined" && !jsonRequest._warned) {
+    // Helpful warning during development if env is not configured
+    console.warn(
+      "API base URL not configured. Set REACT_APP_API_BASE in to_do_frontend/.env.local. " +
+      "Falling back to same-origin (this will fail unless a proxy is configured)."
+    );
+    jsonRequest._warned = true;
+  }
+
+  const url = API_BASE ? joinUrl(API_BASE, path) : path; // fallback to relative if no base
   const opts = {
     method: options.method || "GET",
     headers: {
